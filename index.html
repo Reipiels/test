@@ -1,44 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GS1-128 바코드 리더기</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <title>바코드 리더기</title>
+    <style>
+        #video {
+            width: 500px;
+            height: auto;
+        }
+        #result {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>GS1-128 바코드 리더기</h1>
+    <h1>바코드 리더기</h1>
+    <video id="video" autoplay></video>
     <div id="result"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.1"></script>
     <script>
-        var resultElement = document.getElementById('result');
+        // 웹캠 스트림 가져오기
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function (stream) {
+                var videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
 
-        // QuaggaJS 초기화
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#video'),
-                constraints: {
-                    facingMode: "environment"
+                // 바코드 인식
+                var codeReader = new ZXing.BrowserBarcodeReader();
+                var resultElement = document.getElementById('result');
+                var isDecoding = true;
+
+                function scanBarcode() {
+                    codeReader.decodeOnceFromVideoDevice(undefined, 'video')
+                        .then(function (result) {
+                            if (isDecoding) {
+                                isDecoding = false;
+                                resultElement.textContent = result.text;
+                            }
+                        })
+                        .catch(function (error) {
+                            console.error('바코드 인식 중 오류 발생:', error);
+                            scanBarcode();
+                        });
                 }
-            },
-            decoder: {
-                readers: ["code_128_reader"]
-            }
-        }, function (err) {
-            if (err) {
-                console.error('카메라 초기화 중 오류 발생:', err);
-                return;
-            }
-            console.log("카메라 초기화 완료");
-            Quagga.start();
-        });
 
-        // 바코드 인식 이벤트 핸들러
-        Quagga.onDetected(function (result) {
-            var code = result.codeResult.code;
-            resultElement.textContent = code;
-            Quagga.stop();
-        });
+                scanBarcode();
+            })
+            .catch(function (error) {
+                console.error('웹캠 접근 중 오류 발생:', error);
+            });
     </script>
 </body>
 </html>
