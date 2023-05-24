@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>바코드 리더기</title>
+    <style>
+        #video {
+            width: 500px;
+            height: auto;
+        }
+        #result {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>바코드 리더기</h1>
+    <video id="video" autoplay></video>
+    <div id="result"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.1"></script>
+    <script>
+        // 웹캠 스트림 가져오기
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(function (stream) {
+                var videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
+
+                // 바코드 인식
+                var codeReader = new ZXing.BrowserBarcodeReader();
+                var resultElement = document.getElementById('result');
+                var isDecoding = true;
+
+                function scanBarcode() {
+                    codeReader.decodeOnceFromVideoDevice(undefined, 'video')
+                        .then(function (result) {
+                            if (isDecoding) {
+                                isDecoding = false;
+                                resultElement.textContent = result.text;
+                            }
+                        })
+                        .catch(function (error) {
+                            console.error('바코드 인식 중 오류 발생:', error);
+                            scanBarcode();
+                        });
+                }
+
+                scanBarcode();
+            })
+            .catch(function (error) {
+                console.error('웹캠 접근 중 오류 발생:', error);
+            });
+    </script>
+</body>
+</html>
