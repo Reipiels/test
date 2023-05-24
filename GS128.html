@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GS1-128 바코드 리더기</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+</head>
+<body>
+    <h1>GS1-128 바코드 리더기</h1>
+    <div id="result"></div>
+
+    <script>
+        var resultElement = document.getElementById('result');
+
+        // QuaggaJS 초기화
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#video'),
+                constraints: {
+                    facingMode: "environment"
+                }
+            },
+            decoder: {
+                readers: ["code_128_reader"]
+            }
+        }, function (err) {
+            if (err) {
+                console.error('카메라 초기화 중 오류 발생:', err);
+                return;
+            }
+            console.log("카메라 초기화 완료");
+            Quagga.start();
+        });
+
+        // 바코드 인식 이벤트 핸들러
+        Quagga.onDetected(function (result) {
+            var code = result.codeResult.code;
+            resultElement.textContent = code;
+            Quagga.stop();
+        });
+    </script>
+</body>
+</html>
