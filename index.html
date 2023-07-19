@@ -12,6 +12,7 @@
         }
         #toggleButton {
             margin-top: 10px;
+			margin-bottom: 10px;
         }
     </style>
 </head>
@@ -20,8 +21,6 @@
 	<button id="toggleButton">카메라 전환</button>
 	<div id="result"></div>
     <video id="video" autoplay></video>
-
-
 
     
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.1"></script>
@@ -32,6 +31,7 @@
         var codeReader;
         var isDecoding = true;
         var resultElement = document.getElementById('result');
+        var stream;
 
         // 카메라 전환 버튼 클릭 이벤트 핸들러
         toggleButton.addEventListener('click', function () {
@@ -41,14 +41,19 @@
 
         // 웹캠 스트림 가져오기
         function setupCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
             var constraints = {
                 video: {
-                    facingMode: isUsingFrontCamera ? 'user' : { exact: 'environment' }
+                    facingMode: isUsingFrontCamera ? 'user' : 'environment'
                 }
             };
 
             navigator.mediaDevices.getUserMedia(constraints)
-                .then(function (stream) {
+                .then(function (newStream) {
+                    stream = newStream;
                     videoElement.srcObject = stream;
                     initializeBarcodeReader();
                 })
