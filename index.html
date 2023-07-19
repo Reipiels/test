@@ -10,45 +10,80 @@
         #result {
             margin-top: 10px;
         }
+        #toggleButton {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>바코드 리더기</h1>
+	<button id="toggleButton">카메라 전환</button>
+	<div id="result"></div>
     <video id="video" autoplay></video>
-    <div id="result"></div>
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.1"></script>
     <script>
+        var videoElement = document.getElementById('video');
+        var toggleButton = document.getElementById('toggleButton');
+        var isUsingFrontCamera = false;
+        var codeReader;
+        var isDecoding = true;
+        var resultElement = document.getElementById('result');
+
+        // 카메라 전환 버튼 클릭 이벤트 핸들러
+        toggleButton.addEventListener('click', function () {
+            isUsingFrontCamera = !isUsingFrontCamera;
+            setupCamera();
+        });
+
         // 웹캠 스트림 가져오기
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(function (stream) {
-                var videoElement = document.getElementById('video');
-                videoElement.srcObject = stream;
-
-                // 바코드 인식
-                var codeReader = new ZXing.BrowserBarcodeReader();
-                var resultElement = document.getElementById('result');
-                var isDecoding = true;
-
-                function scanBarcode() {
-                    codeReader.decodeOnceFromVideoDevice(undefined, 'video')
-                        .then(function (result) {
-                            if (isDecoding) {
-                                isDecoding = false;
-                                resultElement.textContent = result.text;
-                            }
-                        })
-                        .catch(function (error) {
-                            console.error('바코드 인식 중 오류 발생:', error);
-                            scanBarcode();
-                        });
+        function setupCamera() {
+            var constraints = {
+                video: {
+                    facingMode: isUsingFrontCamera ? 'user' : 'environment'
                 }
+            };
 
-                scanBarcode();
-            })
-            .catch(function (error) {
-                console.error('웹캠 접근 중 오류 발생:', error);
-            });
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function (stream) {
+                    videoElement.srcObject = stream;
+                    initializeBarcodeReader();
+                })
+                .catch(function (error) {
+                    console.error('웹캠 접근 중 오류 발생:', error);
+                });
+        }
+
+        // 바코드 인식 초기화
+        function initializeBarcodeReader() {
+            if (codeReader) {
+                codeReader.reset();
+            } else {
+                codeReader = new ZXing.BrowserBarcodeReader();
+            }
+
+            scanBarcode();
+        }
+
+        // 바코드 인식
+        function scanBarcode() {
+            codeReader.decodeOnceFromVideoDevice(undefined, 'video')
+                .then(function (result) {
+                    if (isDecoding) {
+                        isDecoding = false;
+                        resultElement.textContent = result.text;
+                    }
+                })
+                .catch(function (error) {
+                    console.error('바코드 인식 중 오류 발생:', error);
+                    scanBarcode();
+                });
+        }
+
+        // 초기 카메라 설정
+        setupCamera();
     </script>
 </body>
 </html>
