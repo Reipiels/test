@@ -23,11 +23,12 @@
 
 
 
+    
     <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.1"></script>
     <script>
         var videoElement = document.getElementById('video');
         var toggleButton = document.getElementById('toggleButton');
-        var isUsingFrontCamera = false;
+        var isUsingFrontCamera = true;
         var codeReader;
         var isDecoding = true;
         var resultElement = document.getElementById('result');
@@ -42,7 +43,7 @@
         function setupCamera() {
             var constraints = {
                 video: {
-                    facingMode: isUsingFrontCamera ? 'user' : 'environment'
+                    facingMode: isUsingFrontCamera ? 'user' : { exact: 'environment' }
                 }
             };
 
